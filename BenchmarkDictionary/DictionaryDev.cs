@@ -39,7 +39,7 @@ namespace Wraith.Collections.Generic
     //[TypeForwardedFrom("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
     public class  DictionaryDev<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>, ISerializable, IDeserializationCallback
     {
-		[DebuggerDisplay(@"{value!=null?value.ToString():""""+string.Empty+"""",nq}")]
+        [DebuggerDisplay(@"{value!=null?value.ToString():""""+string.Empty+"""",nq}")]
         private struct Entry
         {
             public int hashCode;    // Lower 31 bits of hash code, -1 if unused
@@ -382,10 +382,10 @@ namespace Wraith.Collections.Generic
                 if (comparer == null)
                 {
                     int hashCode = key.GetHashCode() & 0x7FFFFFFF;
-					// Value in _buckets is 1-based
-					i = buckets[hashCode % buckets.Length] - 1;
+                    // Value in _buckets is 1-based
+                    i = buckets[hashCode % buckets.Length] - 1;
 
-					if (default(TKey) != null)
+                    if (default(TKey) != null)
                     {
                         // ValueType: Devirtualize with EqualityComparer<TValue>.Default intrinsic
                         do
@@ -436,10 +436,10 @@ namespace Wraith.Collections.Generic
                 else
                 {
                     int hashCode = comparer.GetHashCode(key) & 0x7FFFFFFF;
-					// Value in _buckets is 1-based
-					i = buckets[hashCode % buckets.Length] - 1;
+                    // Value in _buckets is 1-based
+                    i = buckets[hashCode % buckets.Length] - 1;
 
-					do
+                    do
                     {
                         // Should be a while loop https://github.com/dotnet/coreclr/issues/15476
                         // Test in if to drop range check for following array access
@@ -494,9 +494,9 @@ namespace Wraith.Collections.Generic
             int hashCode = ((comparer == null) ? key.GetHashCode() : comparer.GetHashCode(key)) & 0x7FFFFFFF;
 
             int collisionCount = 0;
-			ref int bucket = ref _buckets[hashCode % _buckets.Length];
-			// Value in _buckets is 1-based
-			int i = bucket - 1;
+            ref int bucket = ref _buckets[hashCode % _buckets.Length];
+            // Value in _buckets is 1-based
+            int i = bucket - 1;
 
             if (comparer == null)
             {
@@ -633,8 +633,8 @@ namespace Wraith.Collections.Generic
                 if (count == entries.Length)
                 {
                     Resize();
-					bucket = ref _buckets[hashCode % _buckets.Length];
-				}
+                    bucket = ref _buckets[hashCode % _buckets.Length];
+                }
                 index = count;
                 _count = count + 1;
                 entries = _entries;
@@ -742,9 +742,9 @@ namespace Wraith.Collections.Generic
             {
                 if (entries[i].hashCode >= 0)
                 {
-					int bucket = entries[i].hashCode % newSize;
-					// Value in _buckets is 1-based
-					entries[i].next = buckets[bucket] - 1;
+                    int bucket = entries[i].hashCode % newSize;
+                    // Value in _buckets is 1-based
+                    entries[i].next = buckets[bucket] - 1;
                     // Value in _buckets is 1-based
                     buckets[bucket] = i + 1;
                 }
@@ -754,223 +754,223 @@ namespace Wraith.Collections.Generic
             _entries = entries;
         }
 
-		// The overload Remove(TKey key, out TValue value) is a copy of this method with one additional
-		// statement to copy the value for entry being removed into the output parameter.
-		// Code has been intentionally duplicated for performance reasons.
-		public bool Remove(TKey key)
-		{
-			if (key == null)
-			{
-				ThrowHelper.ThrowArgumentNullException(ExceptionArgument.key);
-			}
+        // The overload Remove(TKey key, out TValue value) is a copy of this method with one additional
+        // statement to copy the value for entry being removed into the output parameter.
+        // Code has been intentionally duplicated for performance reasons.
+        public bool Remove(TKey key)
+        {
+            if (key == null)
+            {
+                ThrowHelper.ThrowArgumentNullException(ExceptionArgument.key);
+            }
 
-			int[] buckets = _buckets;
-			Entry[] entries = _entries;
-			int collisionCount = 0;
-			if (buckets != null)
-			{
-				int hashCode = (_comparer?.GetHashCode(key) ?? key.GetHashCode()) & 0x7FFFFFFF;
-				int bucket = hashCode % buckets.Length;
-				int last = -1;
-				// Value in buckets is 1-based
-				int i = buckets[bucket] - 1;
-				while (i >= 0)
-				{
-					ref Entry entry = ref entries[i];
+            int[] buckets = _buckets;
+            Entry[] entries = _entries;
+            int collisionCount = 0;
+            if (buckets != null)
+            {
+                int hashCode = (_comparer?.GetHashCode(key) ?? key.GetHashCode()) & 0x7FFFFFFF;
+                int bucket = hashCode % buckets.Length;
+                int last = -1;
+                // Value in buckets is 1-based
+                int i = buckets[bucket] - 1;
+                while (i >= 0)
+                {
+                    ref Entry entry = ref entries[i];
 
-					if (entry.hashCode == hashCode && (_comparer?.Equals(entry.key, key) ?? EqualityComparer<TKey>.Default.Equals(entry.key, key)))
-					{
-						if (last < 0)
-						{
-							// Value in buckets is 1-based
-							buckets[bucket] = entry.next + 1;
-						}
-						else
-						{
-							entries[last].next = entry.next;
-						}
-						entry.hashCode = -1;
-						entry.next = _freeList;
+                    if (entry.hashCode == hashCode && (_comparer?.Equals(entry.key, key) ?? EqualityComparer<TKey>.Default.Equals(entry.key, key)))
+                    {
+                        if (last < 0)
+                        {
+                            // Value in buckets is 1-based
+                            buckets[bucket] = entry.next + 1;
+                        }
+                        else
+                        {
+                            entries[last].next = entry.next;
+                        }
+                        entry.hashCode = -1;
+                        entry.next = _freeList;
 
-						if (RuntimeHelpers.IsReferenceOrContainsReferences<TKey>())
-						{
-							entry.key = default;
-						}
-						if (RuntimeHelpers.IsReferenceOrContainsReferences<TValue>())
-						{
-							entry.value = default;
-						}
-						_freeList = i;
-						_freeCount++;
-						_version++;
-						return true;
-					}
+                        if (RuntimeHelpers.IsReferenceOrContainsReferences<TKey>())
+                        {
+                            entry.key = default;
+                        }
+                        if (RuntimeHelpers.IsReferenceOrContainsReferences<TValue>())
+                        {
+                            entry.value = default;
+                        }
+                        _freeList = i;
+                        _freeCount++;
+                        _version++;
+                        return true;
+                    }
 
-					last = i;
-					i = entry.next;
-					if (collisionCount >= entries.Length)
-					{
-						// The chain of entries forms a loop; which means a concurrent update has happened.
-						// Break out of the loop and throw, rather than looping forever.
-						ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
-					}
-					collisionCount++;
-				}
-			}
-			return false;
-		}
+                    last = i;
+                    i = entry.next;
+                    if (collisionCount >= entries.Length)
+                    {
+                        // The chain of entries forms a loop; which means a concurrent update has happened.
+                        // Break out of the loop and throw, rather than looping forever.
+                        ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
+                    }
+                    collisionCount++;
+                }
+            }
+            return false;
+        }
 
-		// This overload is a copy of the overload Remove(TKey key) with one additional
-		// statement to copy the value for entry being removed into the output parameter.
-		// Code has been intentionally duplicated for performance reasons.
-		public bool Remove(TKey key, out TValue value)
-		{
-			if (key == null)
-			{
-				ThrowHelper.ThrowArgumentNullException(ExceptionArgument.key);
-			}
+        // This overload is a copy of the overload Remove(TKey key) with one additional
+        // statement to copy the value for entry being removed into the output parameter.
+        // Code has been intentionally duplicated for performance reasons.
+        public bool Remove(TKey key, out TValue value)
+        {
+            if (key == null)
+            {
+                ThrowHelper.ThrowArgumentNullException(ExceptionArgument.key);
+            }
 
-			int[] buckets = _buckets;
-			Entry[] entries = _entries;
-			int collisionCount = 0;
-			if (buckets != null)
-			{
-				int hashCode = (_comparer?.GetHashCode(key) ?? key.GetHashCode()) & 0x7FFFFFFF;
-				int bucket = hashCode % buckets.Length;
-				int last = -1;
-				// Value in buckets is 1-based
-				int i = buckets[bucket] - 1;
-				while (i >= 0)
-				{
-					ref Entry entry = ref entries[i];
+            int[] buckets = _buckets;
+            Entry[] entries = _entries;
+            int collisionCount = 0;
+            if (buckets != null)
+            {
+                int hashCode = (_comparer?.GetHashCode(key) ?? key.GetHashCode()) & 0x7FFFFFFF;
+                int bucket = hashCode % buckets.Length;
+                int last = -1;
+                // Value in buckets is 1-based
+                int i = buckets[bucket] - 1;
+                while (i >= 0)
+                {
+                    ref Entry entry = ref entries[i];
 
-					if (entry.hashCode == hashCode && (_comparer?.Equals(entry.key, key) ?? EqualityComparer<TKey>.Default.Equals(entry.key, key)))
-					{
-						if (last < 0)
-						{
-							// Value in buckets is 1-based
-							buckets[bucket] = entry.next + 1;
-						}
-						else
-						{
-							entries[last].next = entry.next;
-						}
+                    if (entry.hashCode == hashCode && (_comparer?.Equals(entry.key, key) ?? EqualityComparer<TKey>.Default.Equals(entry.key, key)))
+                    {
+                        if (last < 0)
+                        {
+                            // Value in buckets is 1-based
+                            buckets[bucket] = entry.next + 1;
+                        }
+                        else
+                        {
+                            entries[last].next = entry.next;
+                        }
 
-						value = entry.value;
+                        value = entry.value;
 
-						entry.hashCode = -1;
-						entry.next = _freeList;
+                        entry.hashCode = -1;
+                        entry.next = _freeList;
 
-						if (RuntimeHelpers.IsReferenceOrContainsReferences<TKey>())
-						{
-							entry.key = default;
-						}
-						if (RuntimeHelpers.IsReferenceOrContainsReferences<TValue>())
-						{
-							entry.value = default;
-						}
-						_freeList = i;
-						_freeCount++;
-						_version++;
-						return true;
-					}
+                        if (RuntimeHelpers.IsReferenceOrContainsReferences<TKey>())
+                        {
+                            entry.key = default;
+                        }
+                        if (RuntimeHelpers.IsReferenceOrContainsReferences<TValue>())
+                        {
+                            entry.value = default;
+                        }
+                        _freeList = i;
+                        _freeCount++;
+                        _version++;
+                        return true;
+                    }
 
-					last = i;
-					i = entry.next;
-					if (collisionCount >= entries.Length)
-					{
-						// The chain of entries forms a loop; which means a concurrent update has happened.
-						// Break out of the loop and throw, rather than looping forever.
-						ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
-					}
-					collisionCount++;
-				}
-			}
-			value = default;
-			return false;
-		}
+                    last = i;
+                    i = entry.next;
+                    if (collisionCount >= entries.Length)
+                    {
+                        // The chain of entries forms a loop; which means a concurrent update has happened.
+                        // Break out of the loop and throw, rather than looping forever.
+                        ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
+                    }
+                    collisionCount++;
+                }
+            }
+            value = default;
+            return false;
+        }
 
-		public int RemoveAll(Predicate<KeyValuePair<TKey,TValue>> match)
-		{
-			if (match == null)
-			{
-				ThrowHelper.ThrowArgumentNullException(ExceptionArgument.match);
-			}
+        public int RemoveAll(Predicate<KeyValuePair<TKey,TValue>> match)
+        {
+            if (match == null)
+            {
+                ThrowHelper.ThrowArgumentNullException(ExceptionArgument.match);
+            }
 
-			int removedCount = 0;
-			int count = _count;
-			Entry[] entries = _entries;
-			int[] buckets = _buckets;
-			for (int entryIndex = 0; entryIndex < count; entryIndex++)
-			{
-				if (entries[entryIndex].hashCode >= 0)
-				{
-					int version = _version;
-					TKey key = entries[entryIndex].key;
-					if (match(new KeyValuePair<TKey, TValue>(key, entries[entryIndex].value)))
-					{
-						if (version!=_version)
-						{
-							ThrowHelper.ThrowInvalidOperationException_InvalidOperation_EnumFailedVersion();
-						}
+            int removedCount = 0;
+            int count = _count;
+            Entry[] entries = _entries;
+            int[] buckets = _buckets;
+            for (int entryIndex = 0; entryIndex < count; entryIndex++)
+            {
+                if (entries[entryIndex].hashCode >= 0)
+                {
+                    int version = _version;
+                    TKey key = entries[entryIndex].key;
+                    if (match(new KeyValuePair<TKey, TValue>(key, entries[entryIndex].value)))
+                    {
+                        if (version!=_version)
+                        {
+                            ThrowHelper.ThrowInvalidOperationException_InvalidOperation_EnumFailedVersion();
+                        }
 
-						int collisionCount = 0;
-						int hashCode = (_comparer?.GetHashCode(key) ?? key.GetHashCode()) & 0x7FFFFFFF;
-						int bucket = hashCode % buckets.Length;
-						int last = -1;
-						// Value in _buckets is 1-based
-						int i = entryIndex;
-						while (i >= 0)
-						{
-							ref Entry entry = ref entries[i];
+                        int collisionCount = 0;
+                        int hashCode = (_comparer?.GetHashCode(key) ?? key.GetHashCode()) & 0x7FFFFFFF;
+                        int bucket = hashCode % buckets.Length;
+                        int last = -1;
+                        // Value in _buckets is 1-based
+                        int i = entryIndex;
+                        while (i >= 0)
+                        {
+                            ref Entry entry = ref entries[i];
 
-							if (entry.hashCode == hashCode && (_comparer?.Equals(entry.key, key) ?? EqualityComparer<TKey>.Default.Equals(entry.key, key)))
-							{
-								if (last < 0)
-								{
-									// Value in _buckets is 1-based
-									buckets[bucket] = entry.next + 1;
-								}
-								else
-								{
-									entries[last].next = entry.next;
-								}
-								entry.hashCode = -1;
-								entry.next = _freeList;
+                            if (entry.hashCode == hashCode && (_comparer?.Equals(entry.key, key) ?? EqualityComparer<TKey>.Default.Equals(entry.key, key)))
+                            {
+                                if (last < 0)
+                                {
+                                    // Value in _buckets is 1-based
+                                    buckets[bucket] = entry.next + 1;
+                                }
+                                else
+                                {
+                                    entries[last].next = entry.next;
+                                }
+                                entry.hashCode = -1;
+                                entry.next = _freeList;
 
-								if (RuntimeHelpers.IsReferenceOrContainsReferences<TKey>())
-								{
-									entry.key = default;
-								}
-								if (RuntimeHelpers.IsReferenceOrContainsReferences<TValue>())
-								{
-									entry.value = default;
-								}
-								_freeList = i;
-								_freeCount++;
-								_version++;
-								removedCount++;
-								break;
-							}
+                                if (RuntimeHelpers.IsReferenceOrContainsReferences<TKey>())
+                                {
+                                    entry.key = default;
+                                }
+                                if (RuntimeHelpers.IsReferenceOrContainsReferences<TValue>())
+                                {
+                                    entry.value = default;
+                                }
+                                _freeList = i;
+                                _freeCount++;
+                                _version++;
+                                removedCount++;
+                                break;
+                            }
 
-							last = i;
-							i = entry.next;
-							if (collisionCount >= entries.Length)
-							{
-								// The chain of entries forms a loop; which means a concurrent update has happened.
-								// Break out of the loop and throw, rather than looping forever.
-								ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
-							}
-							collisionCount++;
-						}
-					}
-				}
-			}
+                            last = i;
+                            i = entry.next;
+                            if (collisionCount >= entries.Length)
+                            {
+                                // The chain of entries forms a loop; which means a concurrent update has happened.
+                                // Break out of the loop and throw, rather than looping forever.
+                                ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
+                            }
+                            collisionCount++;
+                        }
+                    }
+                }
+            }
 
-			return removedCount;
-		}
+            return removedCount;
+        }
 
-		public bool TryGetValue(TKey key, out TValue value)
+        public bool TryGetValue(TKey key, out TValue value)
         {
             int i = FindEntry(key);
             if (i >= 0)
@@ -1108,9 +1108,9 @@ namespace Wraith.Collections.Generic
                 {
                     ref Entry entry = ref entries[count];
                     entry = oldEntries[i];
-					int bucket = hashCode % newSize;
-					// Value in _buckets is 1-based
-					entry.next = buckets[bucket] - 1;
+                    int bucket = hashCode % newSize;
+                    // Value in _buckets is 1-based
+                    entry.next = buckets[bucket] - 1;
                     // Value in _buckets is 1-based
                     buckets[bucket] = count + 1;
                     count++;
@@ -1323,7 +1323,7 @@ namespace Wraith.Collections.Generic
                 _current = new KeyValuePair<TKey, TValue>();
             }
 
-			System.Collections.DictionaryEntry IDictionaryEnumerator.Entry
+            System.Collections.DictionaryEntry IDictionaryEnumerator.Entry
             {
                 get
                 {
